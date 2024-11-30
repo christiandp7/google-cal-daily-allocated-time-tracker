@@ -6,6 +6,7 @@ import { AllocatedTimeChart } from "./components/AllocatedTimeChart";
 import { fetchCalendarEvents } from "./services/googleCalendar";
 import { calculateTimeSpent } from "./utils/calendarUtils";
 import { TimeSpentSummary } from "./types/calendar";
+import { RefreshCw } from "lucide-react";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -16,26 +17,27 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchData = async () => {
+    if (!accessToken) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+      const timeMin = startOfDay(new Date()).toISOString();
+      const timeMax = endOfDay(new Date()).toISOString();
+
+      const events = await fetchCalendarEvents(accessToken, timeMin, timeMax);
+      const summary = calculateTimeSpent(events);
+      setTimeSpentSummary(summary);
+    } catch (err) {
+      setError("Failed to fetch calendar data");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      if (!accessToken) return;
-
-      try {
-        setLoading(true);
-        const timeMin = startOfDay(new Date()).toISOString();
-        const timeMax = endOfDay(new Date()).toISOString();
-
-        const events = await fetchCalendarEvents(accessToken, timeMin, timeMax);
-        const summary = calculateTimeSpent(events);
-        setTimeSpentSummary(summary);
-      } catch (err) {
-        setError("Failed to fetch calendar data");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
   }, [accessToken]);
 
@@ -66,6 +68,21 @@ function App() {
 
           {timeSpentSummary && (
             <AllocatedTimeChart summary={timeSpentSummary} />
+          )}
+
+          {accessToken && (
+            <div className="text-center mt-8">
+              <button
+                onClick={fetchData}
+                disabled={loading}
+                className="inline-flex items-center gap-2 bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <RefreshCw
+                  className={`w-5 h-5 ${loading ? "animate-spin" : ""}`}
+                />
+                Refresh 🔁
+              </button>
+            </div>
           )}
         </div>
       </div>
