@@ -1,6 +1,6 @@
-import React from 'react';
-import { useGoogleLogin } from '@react-oauth/google';
-import { Calendar } from 'lucide-react';
+import React from "react";
+import { useGoogleLogin } from "@react-oauth/google";
+import { Calendar } from "lucide-react";
 
 interface LoginButtonProps {
   onSuccess: (token: string) => void;
@@ -9,7 +9,7 @@ interface LoginButtonProps {
 export const LoginButton: React.FC<LoginButtonProps> = ({ onSuccess }) => {
   const login = useGoogleLogin({
     onSuccess: (response) => onSuccess(response.access_token),
-    scope: 'https://www.googleapis.com/auth/calendar.readonly',
+    scope: "https://www.googleapis.com/auth/calendar.readonly",
   });
 
   return (
